@@ -4,7 +4,6 @@
   "description": "Vercel API route for Gemini Chatbot",
   "main": "api/chat.js",
   "dependencies": {
-    // UBAH BARIS INI: Hapus simbol caret (^)
-    "@google/genai": "0.1.0" 
+    "@google/genai": "0.1.0"
   }
 }
