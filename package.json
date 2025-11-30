@@ -1,0 +1,9 @@
+{
+  "name": "vercel-gemini-chat",
+  "version": "1.0.0",
+  "description": "Vercel API route for Gemini Chatbot",
+  "main": "api/chat.js",
+  "dependencies": {
+    "@google/genai": "^0.1.0" 
+  }
+}
