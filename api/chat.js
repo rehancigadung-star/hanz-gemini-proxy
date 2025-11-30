@@ -1,30 +1,30 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// Konfigurasi untuk memaksa Node.js runtime
+module.exports.config = {
+  runtime: 'nodejs'
+};
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "POST only" });
-  }
+// Menggunakan require (CommonJS)
+const { GoogleGenAI } = require('@google/genai');
 
+const client = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY
+});
+
+const modelName = 'gemini-2.5-flash';
+
+module.exports = async (req, res) => {
   try {
-    const { history } = req.body;
+    const userMessage = req.body.message;
 
-    if (!history) {
-      return res.status(400).json({ error: "Missing history" });
-    }
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const result = await model.generateContent(history);
-    const text = result.response.text();
-
-    return res.status(200).json({ text });
-
-  } catch (err) {
-    console.error("Backend Error:", err);
-    return res.status(500).json({
-      error: "Backend Failure",
-      detail: err.toString()
+    const result = await client.models.generateContent({
+      model: modelName,
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }]
     });
+
+    res.status(200).json({
+      reply: result.response.text()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-}
+};
