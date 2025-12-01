@@ -1,34 +1,48 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+// Konfigurasi Runtime Node.js (WAJIB untuk Vercel)
+export const config = {
+  runtime: 'nodejs'
+};
+
+// CommonJS require
+const { GoogleGenAI } = require('@google/genai');
+
+// Inisialisasi Client
+const client = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY   // ❗ WAJIB SAMA DENGAN VARIABLE DI VERCEL
+});
+
+const modelName = 'gemini-2.5-flash';
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'POST only' });
   }
 
   try {
-    const { prompt } = req.body;
+    const { message } = req.body;
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + process.env.GEMINI_API_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
+    if (!message) {
+      return res.status(400).json({ error: 'Missing message' });
+    }
 
-    const data = await response.json();
+    const result = await client.models.generateContent({
+      model: modelName,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: message }]
+        }
+      ]
+    });
 
-    res.status(200).json(data);
+    res.status(200).json({
+      reply: result.response.text()
+    });
+
   } catch (err) {
-    res.status(500).json({ error: "Server error", detail: err.toString() });
+    console.error(err);
+    res.status(500).json({
+      error: err.message
+    });
   }
-}
+};
