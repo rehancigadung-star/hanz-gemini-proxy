@@ -1,37 +1,27 @@
-// Konfigurasi Runtime Node.js (WAJIB untuk Vercel)
+// Force Node runtime
 export const config = {
-  runtime: 'nodejs'
+  runtime: "nodejs"
 };
 
-// CommonJS require
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI } = require("@google/genai");
 
-// Inisialisasi Client
+// Inisialisasi client dengan key dari Vercel Variables
 const client = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY   // ❗ WAJIB SAMA DENGAN VARIABLE DI VERCEL
+  apiKey: process.env.GEMINI_API_KEY
 });
 
-const modelName = 'gemini-2.5-flash';
-
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'POST only' });
-  }
-
   try {
-    const { message } = req.body;
+    const userMessage = req.body.message;
 
-    if (!message) {
-      return res.status(400).json({ error: 'Missing message' });
+    if (!userMessage) {
+      return res.status(400).json({ error: "Message is required" });
     }
 
     const result = await client.models.generateContent({
-      model: modelName,
+      model: "gemini-2.0-flash",
       contents: [
-        {
-          role: "user",
-          parts: [{ text: message }]
-        }
+        { role: "user", parts: [{ text: userMessage }] }
       ]
     });
 
@@ -40,9 +30,7 @@ module.exports = async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: err.message
-    });
+    console.error("API ERROR:", err);
+    res.status(500).json({ error: "Server Error", detail: err.message });
   }
 };
