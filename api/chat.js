@@ -1,41 +1,34 @@
-// Konfigurasi untuk Node.js runtime
-module.exports.config = {
-  runtime: 'nodejs'
-};
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-// Pakai CommonJS
-const { GoogleGenAI } = require('@google/genai');
-
-const client = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY // PASTIKAN nama variabel sama
-});
-
-const modelName = 'gemini-2.5-flash';
-
-module.exports = async (req, res) => {
   try {
-    const userMessage = req.body.message;
+    const { prompt } = req.body;
 
-    const result = await client.models.generateContent({
-      model: modelName,
-      contents: [
-        {
-          role: "user",
-          parts: [
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + process.env.GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
             {
-              text: userMessage
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
           ]
-        }
-      ]
-    });
+        })
+      }
+    );
 
-    res.status(200).json({
-      reply: result.response.text()
-    });
+    const data = await response.json();
 
-  } catch (error) {
-    console.error("Backend Error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Server error", detail: err.toString() });
   }
-};
+}
