@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Vercel API route for Gemini Chatbot",
   "main": "api/chat.js",
-  "type": "commonjs",
   "dependencies": {
-    "@google/genai": "0.3.0"
+    "@google/genai": "*"
   }
 }
